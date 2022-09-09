@@ -57,7 +57,6 @@ int hot_button;
 int pause_button;
 
 bool enemy_is_ai;
-
 bool continue_playing;
 
 /*
@@ -195,10 +194,6 @@ internal void simulate_game(Input* input, float dt)
 						if ((pressed(BUTTON_ENTER) && hot_button == 0))
 						{
 							pause_button = false;
-							//continue_playing = hot_button ? 0 : 1;
-							//controls_menu = hot_button ? 1 : 0;
-
-							//quit_game = hot_button ? 3 : 0;
 						}
 						else if (pressed(BUTTON_ENTER) && hot_button == 1)
 						{

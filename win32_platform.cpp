@@ -1,15 +1,21 @@
 /**
-* Creates ...
-*
+* A simple Windows Pong application.
 *
 * @author Darrian Bezayiff
-* @date 08/18/22
+* @date 09/09/22
 */
+
 #include "utilities.cpp"
 #include <windows.h>
 
+/**
+* Creates a boolean that tells whether the game is running or not.
+*/
 global_variable bool running = true;
 
+/**
+* A struct for the window size.
+*/
 struct Render_State
 {
 	int height, width;
@@ -18,12 +24,19 @@ struct Render_State
 	BITMAPINFO bitmap_info;
 };
 
+/**
+* Creates a global variable of the render state.
+*/
 global_variable Render_State render_state;
 
 #include "button_events.cpp"
 #include "renderer.cpp"
 #include "game.cpp"
 
+/**
+* The callback function for a Windows application.
+* Sets the window size, destroys, or quits depending on the message.
+*/
 LRESULT CALLBACK window_callback (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT result = 0;
@@ -73,21 +86,26 @@ LRESULT CALLBACK window_callback (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 	return result;
 }
 
+/**
+* Main for a Windows application. Creates a window class,
+* registers it, and creates a new window for the game to use.
+* Also simulates and renders the game.
+*/
 int WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	FreeConsole();
 	ShowCursor(FALSE);
 
-	//Create Window Class
+	//Creates a window class
 	WNDCLASS window_class = {};
 	window_class.style = CS_HREDRAW | CS_VREDRAW;
 	window_class.lpszClassName = L"Game Window Class";
 	window_class.lpfnWndProc = window_callback;
 
-	//Register Class
+	//Registers window class
 	RegisterClass(&window_class);
 
-	//Create Window
+	//Creates a window
 	HWND window = CreateWindow(window_class.lpszClassName, L"Pong Demo", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720, 0, 0, hInstance, 0);
 	{
 		//Full Screen
@@ -99,12 +117,15 @@ int WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int 
 
 	HDC hdc = GetDC(window);
 
+	//Input array for the possible valid User Inputs
 	Input input = {};
-
+	
+	//Starts the timer for each frame
 	float delta_time = 0.f;
 	LARGE_INTEGER frame_begin_time;
 	QueryPerformanceCounter(&frame_begin_time);
 
+	//Finds how many cycles the CPU can run in one second
 	float performance_frequency;
 	{
 		LARGE_INTEGER perf;
@@ -112,16 +133,19 @@ int WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int 
 		performance_frequency = (float)perf.QuadPart;
 	}
 
+	//This is where the game takes place!
 	while (running)
 	{
-		//Input
+		//User Input
 		MSG message;
 
+		//Resets the buttons changed state to false for each frame
 		for (int i = 0; i < BUTTON_COUNT; i++)
 		{
 			input.buttons[i].changed = false;
 		}
 
+		//Listens to User Input
 		while (PeekMessage(&message, window, 0, 0, PM_REMOVE))
 		{
 			switch (message.message)
@@ -162,16 +186,18 @@ break;
 				}
 			}
 		}
-		//Simulate Game
+		//Simulates the game
 		simulate_game(&input, delta_time);//delta_time);
 
-		//Render
+		//Renders the game
 		StretchDIBits(hdc, 0, 0, render_state.width, render_state.height, 0, 0, render_state.width, render_state.height, render_state.memory, &render_state.bitmap_info, DIB_RGB_COLORS, SRCCOPY);
 
+		//Ends the timer and gives the delta-time in seconds per frame
 		LARGE_INTEGER frame_end_time;
 		QueryPerformanceCounter(&frame_end_time);
 		delta_time = (float)(frame_end_time.QuadPart - frame_begin_time.QuadPart)/ performance_frequency;
 
+		//Resets the timer
 		frame_begin_time = frame_end_time;
 	}
 }

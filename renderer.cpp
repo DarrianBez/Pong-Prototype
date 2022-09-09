@@ -1,3 +1,6 @@
+/*
+* Clears the screen.
+*/
 internal void clear_screen(unsigned int color)
 {
 	u32* pixel = (u32*)render_state.memory;
@@ -10,6 +13,10 @@ internal void clear_screen(unsigned int color)
 	}
 }
 
+/*
+* Helper function for draw_rect()
+* Draws a rectangle in pixels.
+*/
 internal void draw_rect_in_pixels(int x0, int y0, int x1, int y1, u32 color)
 {
 	x0 = clamp(0, x0, render_state.width);
@@ -27,8 +34,14 @@ internal void draw_rect_in_pixels(int x0, int y0, int x1, int y1, u32 color)
 	}
 }
 
+/*
+* Scale multiplyer for drawing rectangles.
+*/
 global_variable float render_scale = 0.01f;
 
+/*
+* Draws a rectangle.
+*/
 internal void draw_rect(float x, float y, float half_size_x, float half_size_y, u32 color)
 {
 	x *= render_state.height * render_scale;
@@ -48,6 +61,9 @@ internal void draw_rect(float x, float y, float half_size_x, float half_size_y, 
 	draw_rect_in_pixels(x0, y0, x1, y1, color);
 }
 
+/*
+* All possible characters for the game.
+*/
 const char* letters[][7] = {
 	//Alphabet		
 	" 000",
@@ -326,6 +342,9 @@ const char* letters[][7] = {
 	"  0"
 };
 
+/*
+* Draws text.
+*/
 internal void draw_text(const char* text, float x, float y, float size, u32 color)
 {
 	float half_size = size * .5f;
@@ -370,6 +389,9 @@ internal void draw_text(const char* text, float x, float y, float size, u32 colo
 	}
 }
 
+/*
+* Draws numbers.
+*/
 internal void draw_number(int number, float x, float y, float size, u32 color)
 {
 	float half_size = size * .5f;
