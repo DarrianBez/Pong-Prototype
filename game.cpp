@@ -42,7 +42,16 @@ enum Game_Mode
 	GM_GAMEPLAY
 };
 
+//Different Pause Menu Options
+enum Pause_Menu
+{
+	PM_MENU,
+	PM_CONTROLS,
+	PM_QUIT
+};
+
 Game_Mode current_game_mode;
+Pause_Menu pause_menu_option;
 
 int hot_button;
 int pause_button;
@@ -50,13 +59,11 @@ int pause_button;
 bool enemy_is_ai;
 
 bool continue_playing;
-bool controls_menu;
-bool pick_game_mode;
 
 /*
 * Runs a Pong Game!
 */
-internal void simulate_game (Input* input, float dt)
+internal void simulate_game(Input* input, float dt)
 {
 	if (current_game_mode == GM_MENU)
 	{
@@ -99,7 +106,7 @@ internal void simulate_game (Input* input, float dt)
 				draw_text("SINGLE PLAYER", -80, -10, 1, 0xcccccc);
 				draw_text("MULTIPLAYER", 16, -10, 1, 0xff00ff);
 			}
-			
+
 			//Write Title, Sub-Title, and Links to Portfolio
 			draw_text("PONG DEMO", -50, 40, 2, 0xcccccc);
 			draw_text("PLAY AGAINST THE ALMIGHTY AI OR WITH A FRIEND", -81, 22, .6, 0xcccccc);
@@ -136,12 +143,12 @@ internal void simulate_game (Input* input, float dt)
 		//----------------------------------------------------//
 		{
 			float current_dt = dt;
-			
-			if (pressed(BUTTON_PAUSE))
+
+			if (pressed(BUTTON_PAUSE) || pressed(BUTTON_ESCAPE))
 			{
 				pause_button = !pause_button;
 			}
-			
+
 			if (pause_button)
 			{
 				//----------------------------------------------------//
@@ -150,90 +157,193 @@ internal void simulate_game (Input* input, float dt)
 				{
 					current_dt = 0.f;
 
-					draw_rect(0, 0, 44.75, 47.75, 0xcccccc);
-
-					//Pause Menu Border
-					draw_rect(-45, 0, .25, 48, 0xff00ff);
-					draw_rect(45, 0, .25, 48, 0xff00ff);
-					draw_rect(0, 47.75, 44.75, .25, 0xff00ff);
-					draw_rect(0, -47.75, 44.75, .25, 0xff00ff);
-					
-					draw_text("PAUSE MENU", -35.5, 35, 1.22, 0xff00ff);
-					draw_rect(-.25, 25, 35, .7, 0xff00ff);
-
-					//Change Pause Menu Option
-					if (pressed(BUTTON_UP) || pressed(BUTTON_DOWN))
+					if (pause_menu_option == PM_MENU)
 					{
-						if (pressed(BUTTON_DOWN) && hot_button < 3)
+						draw_rect(0, 0, 44.75, 47.75, 0xcccccc);
+
+						//Pause Menu Border
+						draw_rect(-45, 0, .25, 48, 0xff00ff);
+						draw_rect(45, 0, .25, 48, 0xff00ff);
+						draw_rect(0, 47.75, 44.75, .25, 0xff00ff);
+						draw_rect(0, -47.75, 44.75, .25, 0xff00ff);
+
+						draw_text("PAUSE MENU", -35.5, 35, 1.22, 0xff00ff);
+						draw_rect(-.25, 25, 35, .7, 0xff00ff);
+
+						//Change Pause Menu Option
+						if (pressed(BUTTON_UP) || pressed(BUTTON_DOWN))
 						{
-							hot_button += 1;
+							if (pressed(BUTTON_DOWN) && hot_button < 3)
+							{
+								hot_button += 1;
+							}
+							else if (pressed(BUTTON_UP) && hot_button > 0)
+							{
+								hot_button -= 1;
+							}
+							else if (pressed(BUTTON_DOWN) && hot_button == 3)
+							{
+								hot_button = 0;
+							}
+							else
+							{
+								hot_button = 3;
+							}
 						}
-						else if (pressed(BUTTON_UP) && hot_button > 0)
+
+						//Select Pause Menu Option
+						if ((pressed(BUTTON_ENTER) && hot_button == 0))
 						{
-							hot_button -= 1;
+							pause_button = false;
+							//continue_playing = hot_button ? 0 : 1;
+							//controls_menu = hot_button ? 1 : 0;
+
+							//quit_game = hot_button ? 3 : 0;
 						}
-						else if (pressed(BUTTON_DOWN) && hot_button == 3)
+						else if (pressed(BUTTON_ENTER) && hot_button == 1)
 						{
+							hot_button = 1;
+							pause_menu_option = PM_CONTROLS;
+						}
+						else if (pressed(BUTTON_ENTER) && hot_button == 2)
+						{
+							player1_y = 0;
+							player2_y = 0;
+
+							player1_dy = 0;
+							player2_dy = 0;
+
+							ball_x = 0;
+							ball_y = 0;
+							ball_dx = 100;
+							ball_dy = 0;
+							
+							player1_score = 0;
+							player2_score = 0;
+							
+							pause_button = false;
 							hot_button = 0;
+							current_game_mode = GM_MENU;
+						}
+						else if (pressed(BUTTON_ENTER) && hot_button == 3)
+						{
+							hot_button = 1;
+							pause_menu_option = PM_QUIT;
+						}
+
+						//Highlight Pause Menu Option
+						if (hot_button == 0)
+						{
+							draw_text("CONTINUE", -16.25, 17, .66, 0xffff00);
+							draw_text("CONTROLS", -16.25, 2, .66, 0xff00ff);
+							draw_text("GAME MODE", -17.65, -13, .66, 0xff00ff);
+							draw_text("QUIT GAME", -17.25, -28, .66, 0xff00ff);
+						}
+						else if (hot_button == 1)
+						{
+							draw_text("CONTINUE", -16.25, 17, .66, 0xff00ff);
+							draw_text("CONTROLS", -16.25, 2, .66, 0xffff00);
+							draw_text("GAME MODE", -17.65, -13, .66, 0xff00ff);
+							draw_text("QUIT GAME", -17.25, -28, .66, 0xff00ff);
+						}
+						else if (hot_button == 2)
+						{
+							draw_text("CONTINUE", -16.25, 17, .66, 0xff00ff);
+							draw_text("CONTROLS", -16.25, 2, .66, 0xff00ff);
+							draw_text("GAME MODE", -17.65, -13, .66, 0xffff00);
+							draw_text("QUIT GAME", -17.25, -28, .66, 0xff00ff);
 						}
 						else
 						{
-							hot_button = 3;
+							draw_text("CONTINUE", -16.25, 17, .66, 0xff00ff);
+							draw_text("CONTROLS", -16.25, 2, .66, 0xff00ff);
+							draw_text("GAME MODE", -17.65, -13, .66, 0xff00ff);
+							draw_text("QUIT GAME", -17.25, -28, .66, 0xffff00);
 						}
 					}
+					else if (pause_menu_option == PM_CONTROLS)
+					{
+						draw_rect(0, 0, 44.75, 47.75, 0xcccccc);
 
-					//Select Pause Menu Option
-					if (pressed(BUTTON_ENTER) && hot_button == 0)
-					{
-						pause_button = false;
-						//continue_playing = hot_button ? 0 : 1;
-						//controls_menu = hot_button ? 1 : 0;
-						
-						//quit_game = hot_button ? 3 : 0;
-					}
-					else if (pressed(BUTTON_ENTER) && hot_button == 1)
-					{
+						//Controls Menu Border
+						draw_rect(-45, 0, .25, 48, 0xff00ff);
+						draw_rect(45, 0, .25, 48, 0xff00ff);
+						draw_rect(0, 47.75, 44.75, .25, 0xff00ff);
+						draw_rect(0, -47.75, 44.75, .25, 0xff00ff);
 
-					}
-					else if (pressed(BUTTON_ENTER) && hot_button == 2)
-					{
-						pause_button = false;
-						hot_button = 0;
-						current_game_mode = GM_MENU;
-					}
-					else if (pressed(BUTTON_ENTER) && hot_button == 3)
-					{
-						exit(0);
-					}
+						draw_text("CONTROLS", -28, 35, 1.22, 0xff00ff);
+						draw_rect(-.25, 25, 35, .7, 0xff00ff);
 
-					//Highlight Pause Menu Option
-					if (hot_button == 0)
-					{
-						draw_text("CONTINUE", -17.25, 17, .66, 0xffff00);
-						draw_text("CONTROLS", -17.25, 2, .66, 0xff00ff);
-						draw_text("GAME MODE", -17.25, -13, .66, 0xff00ff);
-						draw_text("QUIT GAME", -17.25, -28, .66, 0xff00ff);
-					}
-					else if (hot_button == 1)
-					{
-						draw_text("CONTINUE", -17.25, 17, .66, 0xff00ff);
-						draw_text("CONTROLS", -17.25, 2, .66, 0xffff00);
-						draw_text("GAME MODE", -17.25, -13, .66, 0xff00ff);
-						draw_text("QUIT GAME", -17.25, -28, .66, 0xff00ff);
-					}
-					else if (hot_button == 2)
-					{
-						draw_text("CONTINUE", -17.25, 17, .66, 0xff00ff);
-						draw_text("CONTROLS", -17.25, 2, .66, 0xff00ff);
-						draw_text("GAME MODE", -17.25, -13, .66, 0xffff00);
-						draw_text("QUIT GAME", -17.25, -28, .66, 0xff00ff);
+						draw_text("PLAYER 1", -14.25, 17, .66, 0x0000ff);
+						draw_text("UP..........^", -24.75, 9.5, .66, 0x0000ff);
+						draw_text("DOWN........v", -24.75, 2, .66, 0x0000ff);
+
+						draw_text("PLAYER 2", -14.25, -13, .66, 0xff0000);
+						draw_text("UP..........W", -24.75, -20.5, .66, 0xff0000);
+						draw_text("DOWN........S", -24.75, -28, .66, 0xff0000);
+
+						//Select Controls Menu Option
+						if (pressed(BUTTON_ENTER))
+						{
+							pause_menu_option = PM_MENU;
+						}
 					}
 					else
 					{
-						draw_text("CONTINUE", -17.25, 17, .66, 0xff00ff);
-						draw_text("CONTROLS", -17.25, 2, .66, 0xff00ff);
-						draw_text("GAME MODE", -17.25, -13, .66, 0xff00ff);
-						draw_text("QUIT GAME", -17.25, -28, .66, 0xffff00);
+						draw_rect(0, 0, 44.75, 47.75, 0xcccccc);
+
+						//Quit Menu Border
+						draw_rect(-45, 0, .25, 48, 0xff00ff);
+						draw_rect(45, 0, .25, 48, 0xff00ff);
+						draw_rect(0, 47.75, 44.75, .25, 0xff00ff);
+						draw_rect(0, -47.75, 44.75, .25, 0xff00ff);
+
+						draw_text("ARE YOU SURE?", -35.5, 35, .95, 0xff00ff);
+						draw_rect(-.25, 25, 35, .7, 0xff00ff);
+						
+						//Change Quit Menu Option
+						if (pressed(BUTTON_LEFT) || pressed(BUTTON_RIGHT))
+						{
+							if (pressed(BUTTON_LEFT) && hot_button == 0)
+							{
+								hot_button = 1;
+							}
+							else if (pressed(BUTTON_RIGHT) && hot_button == 0)
+							{
+								hot_button = 1;
+							}
+							else if (pressed(BUTTON_LEFT) && hot_button == 1)
+							{
+								hot_button = 0;
+							}
+							else
+							{
+								hot_button = 0;
+							}
+						}
+
+						//Select Quit Menu Option
+						if ((pressed(BUTTON_ENTER) && hot_button == 0))
+						{
+							exit(0);
+						}
+						else if (pressed(BUTTON_ENTER) && hot_button == 1)
+						{
+							pause_menu_option = PM_MENU;
+							hot_button = 3;
+						}
+
+						//Highlight Quit Menu Option
+						if (hot_button == 0)
+						{
+							draw_text("YES", -17.25, -7.5, .66, 0xffff00);
+							draw_text("NO", 9.75, -7.5, .66, 0xff00ff);
+						}
+						else
+						{
+							draw_text("YES", -17.25, -7.5, .66, 0xff00ff);
+							draw_text("NO", 9.75, -7.5, .66, 0xffff00);
+						}
 					}
 				}
 			}
